@@ -1,0 +1,64 @@
+// Prisma schema for StackRunner
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id    String @id @default(cuid())
+  email String @unique
+  prefs Json?
+  jobs  Job[]
+  runPlans RunPlan[]
+}
+
+model Job {
+  id            String   @id @default(cuid())
+  title         String
+  source        String
+  payout        Float
+  reimbursement Float? @default(0)
+  address       String
+  lat           Float
+  lng           Float
+  timeWindowStart DateTime?
+  timeWindowEnd   DateTime?
+  durationMin   Int
+  status        String
+  notes         String?
+  tags          String[]
+  user          User @relation(fields: [userId], references: [id])
+  userId        String
+  receipt       Receipt?
+}
+
+model RunPlan {
+  id            String   @id @default(cuid())
+  date          DateTime
+  orderedJobIds String[]
+  distKm        Float
+  timeMin       Int
+  user          User @relation(fields: [userId], references: [id])
+  userId        String
+}
+
+model Receipt {
+  id     String @id @default(cuid())
+  job    Job    @relation(fields: [jobId], references: [id])
+  jobId  String @unique
+  url    String
+  total  Float
+}
+
+model EventLog {
+  id      String   @id @default(cuid())
+  actor   String
+  entity  String
+  delta   Json
+  at      DateTime @default(now())
+}
